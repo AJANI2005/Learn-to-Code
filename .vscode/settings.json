@@ -1,0 +1,8 @@
+{
+    "dotnet.defaultSolution": "data_structures.sln",
+    "files.associations": {
+        "iostream": "cpp",
+        "map": "cpp",
+        "xstring": "cpp"
+    }
+}

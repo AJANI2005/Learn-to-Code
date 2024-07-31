@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genetic Algorithm</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+        }
+
+       #output {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        p {
+            margin: 10px 0;
+        }
+        p:nth-child(odd) {
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        p:nth-child(even) {
+            background-color: #2a2a2a;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="output"></div>
+ 
+    <script>
+
+        let targetWord = "To be or not to be that is the question";
+        let output = document.querySelector('#output');
+        
+        let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ';
+        let mutatationRate = 0.01;
+
+        class DNA {
+            constructor(word) {
+                this.genes = word;
+                this.fitness = 0;
+            }
+            str() {
+                let output = "";
+                for (let i = 0; i < this.genes.length; i++) {
+                    output += this.genes[i];
+                }
+                return output;
+            }
+            mutate() {
+                for (let i = 0; i < this.genes.length; i++) {
+                    let k = random(0, 1);
+                    if (k < mutatationRate) {
+                        this.genes[i] = characters[floor(random(0, characters.length))];
+                    }
+                }
+            }
+            crossOver(other) {
+                let dna = new DNA([]);
+                for (let i = 0; i < this.genes.length; i++) {
+                    let middle = floor(this.genes.length / 2);
+                    if (i < middle) {
+                        dna.genes.push(this.genes[i]);
+                    } else {
+                        dna.genes.push(other.genes[i]);
+                    }
+                }
+                return dna;
+            }
+            calculateFitness(word) {
+                let count = 0;
+                for (let i = 0; i < this.genes.length; i++) {
+                    if (this.genes[i] === word[i]) {
+                        count += 1;
+                    }
+                }
+                this.fitness = pow(count / word.length, 4);
+            }
+        }
+
+        let population = [];
+        const N = 500;
+        let bestWord = "";
+        let generations = 0;
+        
+        function setup() {
+            //Populate
+            for (let i = 0; i < N; i++) {
+
+                //Random Set of letters
+                randomString = [];
+                for (let j = 0; j < targetWord.length; j++) {
+                    randomCharacter = characters[floor(random(0, characters.length))]
+                    randomString.push(randomCharacter);
+                }
+
+                let dna = new DNA(randomString);
+                population.push(dna);
+            }
+
+        }
+        function acceptReject(bestFitness) {
+            while (true && bestFitness > 0) {
+                let index = floor(random(0, population.length));
+                let partner = population[index];
+                let r = random(bestFitness)
+                if (r <= partner.fitness) {
+                    return partner;
+                }
+            }
+
+
+        }
+        function draw() {
+
+           
+            output.innerHTML = `
+                <h1>Genetic Word Algorithm</h1>
+                <p>Phrase: ${targetWord}</p>
+                <p>Best Word: ${bestWord}</p>
+                <p>Generations: ${generations}</p>
+                <p>Population Size: ${population.length}</p>
+            ` ;
+
+
+            if (bestWord != targetWord) {
+                
+               
+
+                generations += 1;
+                let bestFitness = 0;
+                for (let i = 0; i < N; i++) {
+                    let dna = population[i];
+                    dna.calculateFitness(targetWord);
+                    if (dna.fitness > bestFitness) {
+                        bestFitness = dna.fitness;
+                        bestWord = dna.str()
+                    }
+
+                }
+             
+                
+
+                //Reproduce
+                let newPopulation = []
+                for (let i = 0; i < N; i++) {
+                    let parentA = acceptReject(bestFitness);
+                    let parentB = acceptReject(bestFitness);
+                    let child = parentA.crossOver(parentB);
+                    child.mutate();
+                    newPopulation[i] = child;
+                }
+                population = newPopulation;
+
+            }
+        }
+
+
+
+    </script>
+</body>
+
+</html>
